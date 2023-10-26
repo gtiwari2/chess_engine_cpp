@@ -1,7 +1,10 @@
 #include "board.h"
+#include "pieces.h"
 #include <iostream>
 
 // initialize Rook -> Knight -> Bishop -> Queen -> King to maintain correct offset
+
+// initializes Rooks/Knights/Bishops based on template type
 template <typename cavalryType>
 void Board::m_InitCavalry()
 {
@@ -13,6 +16,7 @@ void Board::m_InitCavalry()
 	offset++;
 }
 
+// initializes Queens and Kings based on template type
 template <typename royaltyType>
 void Board::m_InitRoyalty()
 {
@@ -22,6 +26,8 @@ void Board::m_InitRoyalty()
 	offset++;
 }
 
+
+// initializes Pawns
 void Board::m_InitPawns()
 {
 	side color = white;
@@ -32,6 +38,15 @@ void Board::m_InitPawns()
 			m_board[i] = new Pawn(color, pos(i, row));
 }
 
+
+// does NOT check if the piece can move that way (this is done by piece)
+// only checks if the dest pos is empty or has an enemy piece
+bool Board::m_IsValidMove(Piece& mover, pos dest)
+{
+	return (m_board[GRID_POS(dest)] == nullptr || m_board[GRID_POS(dest)]->getSide() != mover.getSide());
+}
+
+// deletes all pieces on the board
 void Board::m_DeleteBoard()
 {
 	// free memory of pieces
@@ -39,6 +54,7 @@ void Board::m_DeleteBoard()
 		delete m_board[i], m_board[i] = nullptr;
 }
 
+// initializes a new board, including the pieces by default
 Board::Board(bool initBoard = true)
 	: m_board{nullptr}, m_boardInitialized(false), offset(0)
 {
@@ -46,8 +62,11 @@ Board::Board(bool initBoard = true)
 		ResetBoard();
 }
 
-void Board::ResetBoard()
+void Board::ResetBoard(bool clearBoard)
 {
+	if (clearBoard)
+		m_DeleteBoard();
+
 	// initialize pieces based on offset order
 	m_InitCavalry<Rook>();
 	m_InitCavalry<Knight>();
@@ -81,6 +100,19 @@ void Board::PrintBoard()
 		std::cout << std::endl << "________________________" << std::endl;
 	}
 }
+
+
+// returns 0 on success, -1 on failure
+char Board::MovePiece(pos from, pos to)
+{
+	if (m_board[GRID_POS(from)] != nullptr && m_IsValidMove(*m_board[GRID_POS(from)], to))
+		m_board[GRID_POS(to)] = m_board[GRID_POS(from)], m_board[GRID_POS(from)] = nullptr;
+	else
+		return -1;
+	
+	return 0;
+}
+
 
 // free/reset memory and vars
 Board::~Board()

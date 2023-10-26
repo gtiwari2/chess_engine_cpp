@@ -1,4 +1,5 @@
 #include "pieces.h"
+#include "board.h"
 
 // note:
 // board checks (empty space, taking a piece etc.) will be made within the board class (TO DO)
@@ -19,6 +20,16 @@ void pos::setCoords(std::string coords)
 		xPos = coords[0], yPos = coords[1];
 }
 
+pos pos::operator-(const pos& delta)
+{
+	return pos(xPos - delta.xPos, yPos - delta.yPos);
+}
+
+pos pos::operator+(const pos& delta)
+{
+	return pos(xPos + delta.xPos, yPos + delta.yPos);
+}
+
 void pos::operator+=(const pos& delta) 
 {
 	xPos += delta.xPos;
@@ -31,27 +42,20 @@ pos Piece::getCoords() const
 	return m_coords;
 }
 
-side Piece::getSide()
+side Piece::getSide() const
 {
 	return m_color;
 }
 
-void Piece::Move(pos coordsDelta)
+void Piece::Move(pos dest)
 {
-	m_coords += coordsDelta;
-
-	// move pointer on board (do it here or in board class?)
-	// TO DO
+	m_coords = dest;
 }
 
 Piece::Piece(side team, pos startingPos)
 	: m_coords(startingPos), m_color(team)
 {
 }
-
-Piece::Piece()
-	: m_coords(pos(0,0)), m_color(white)
-{};
 
 
 void Pawn::MoveForward(unsigned char deltaX)
@@ -87,11 +91,52 @@ void Pawn::MoveDiagonal(pawnDir direction, bool enPassant)
 	}
 }
 
-/* TO DO: implement piece specific move functions
-class Knight : public Piece
-{
 
-};
+// returns 0 on success, -1 on failure
+char Knight::Move(Board &curBoard, knightDir dir)
+{
+	pos to;
+
+	switch (dir)
+	{
+	case downLeft:
+		to = (getCoords() - pos(1, 2));
+		break;
+	case leftDown:
+		to = (getCoords() - pos(2, 1));
+		break;
+	case leftUp:
+		to = (getCoords() - pos(2, 0) + pos(0, 1));
+		break;
+	case upLeft:
+		to = (getCoords() + pos(0, 2) - pos(1, 0));
+		break;
+	case upRight:
+		to = (getCoords() + pos(2, 1));
+		break;
+	case rightUp:
+		to = (getCoords() + pos(1, 2));
+		break;
+	case rightDown:
+		to = (getCoords() + pos(2, 0) - pos(0, 1));
+		break;
+	case downRight:
+		to = (getCoords() - pos(0, 2) + pos(1, 0));
+		break;
+	default:
+		break;
+	}
+
+	if (curBoard.MovePiece(getCoords(), to) == 0)
+		Piece::Move(to);
+	else
+		return -1;
+
+	return 0;
+
+}
+
+/* TO DO: implement piece specific move functions
 
 class Bishop : public Piece
 {

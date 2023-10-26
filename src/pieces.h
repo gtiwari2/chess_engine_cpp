@@ -7,6 +7,10 @@
 #define CHAR_A		49
 #define CHAR_H		56
 
+#define GRID_POS(position) (position.xPos * ROWS_COLS + position.yPos)
+
+class Board;
+
 enum side : signed char
 {
 	white = -1, black = 1
@@ -22,6 +26,10 @@ struct pos {
 
 	void setCoords(std::string coords);
 
+	pos operator-(const pos& delta);
+
+	pos operator+(const pos& delta);
+
 	void operator+=(const pos& delta);
 };
 
@@ -33,16 +41,14 @@ private:
 	side m_color;
 
 protected:
-	pos getCoords() const;
-
-	side getSide();
-
-	void Move(pos coordsDelta);
+	void Move(pos dest);
 
 public:
 	Piece(side team, pos startingPos);
 
-	Piece();
+	pos getCoords() const;
+
+	side getSide() const;
 };
 
 class Pawn : public Piece // private vs protected vs public inheritance??? TO DO
@@ -71,6 +77,8 @@ class Knight : public Piece
 	{
 		downLeft, leftDown, leftUp, upLeft, upRight, rightUp, rightDown, downRight
 	};
+
+	char Move(Board &curBoard, knightDir dir);
 
 	using Piece::Piece;
 };
