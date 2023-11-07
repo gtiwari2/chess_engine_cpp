@@ -8,10 +8,10 @@
 template <typename cavalryType>
 void Board::m_InitCavalry()
 {
-	m_board[offset] = new cavalryType(white, pos(offset, 0));
-	m_board[ROWS_COLS - 1 - offset] = new cavalryType(white, pos(ROWS_COLS - 1 - offset, 0));
-	m_board[GRID_SIZE - 1 - offset] = new cavalryType(black, pos(ROWS_COLS - 1 - offset, ROWS_COLS - 1));
-	m_board[GRID_SIZE - ROWS_COLS + offset] = new cavalryType(black, pos(offset, ROWS_COLS - 1));
+	m_board[offset] = new cavalryType(Piece::white, pos(offset, 0));
+	m_board[ROWS_COLS - 1 - offset] = new cavalryType(Piece::white, pos(ROWS_COLS - 1 - offset, 0));
+	m_board[GRID_SIZE - 1 - offset] = new cavalryType(Piece::black, pos(ROWS_COLS - 1 - offset, ROWS_COLS - 1));
+	m_board[GRID_SIZE - ROWS_COLS + offset] = new cavalryType(Piece::black, pos(offset, ROWS_COLS - 1));
 
 	offset++;
 }
@@ -20,8 +20,8 @@ void Board::m_InitCavalry()
 template <typename royaltyType>
 void Board::m_InitRoyalty()
 {
-	m_board[offset] = new royaltyType(white, pos(offset, 0));
-	m_board[GRID_SIZE - (ROWS_COLS - offset)] = new royaltyType(black, pos(offset, ROWS_COLS - 1));
+	m_board[offset] = new royaltyType(Piece::white, pos(offset, 0));
+	m_board[GRID_SIZE - (ROWS_COLS - offset)] = new royaltyType(Piece::black, pos(offset, ROWS_COLS - 1));
 
 	offset++;
 }
@@ -30,10 +30,10 @@ void Board::m_InitRoyalty()
 // initializes Pawns
 void Board::m_InitPawns()
 {
-	side color = white;
-	char row = 0;
+	Piece::side color {Piece::white};
+	char row {0};
 
-	for (char flip = 0; flip < 2; flip++, color = black, row = ROWS_COLS - 1)
+	for (char flip = 0; flip < 2; flip++, color = Piece::black, row = ROWS_COLS - 1)
 		for (char i = 0; i < ROWS_COLS; i++)
 			m_board[i] = new Pawn(color, pos(i, row));
 }
@@ -41,7 +41,7 @@ void Board::m_InitPawns()
 
 // does NOT check if the piece can move that way (this is done by piece)
 // only checks if the dest pos is empty or has an enemy piece
-bool Board::m_IsValidMove(Piece& mover, pos dest)
+bool Board::m_IsValidMove(const Piece& mover, const pos dest) const
 {
 	return (m_board[GRID_POS(dest)] == nullptr || m_board[GRID_POS(dest)]->getSide() != mover.getSide());
 }
@@ -59,10 +59,10 @@ Board::Board(bool initBoard = true)
 	: m_board{nullptr}, m_boardInitialized(false), offset(0)
 {
 	if (initBoard)
-		ResetBoard();
+		ResetBoard(false);
 }
 
-void Board::ResetBoard(bool clearBoard)
+void Board::ResetBoard(const bool clearBoard)
 {
 	if (clearBoard)
 		m_DeleteBoard();
@@ -102,15 +102,16 @@ void Board::PrintBoard()
 }
 
 
-// returns 0 on success, -1 on failure
-char Board::MovePiece(pos from, pos to)
+// returns 0 on success, -1 on failure; checks if move is valid in terms of the board, not piece
+char Board::MovePiece(const pos from, const pos to)
 {
 	if (m_board[GRID_POS(from)] != nullptr && m_IsValidMove(*m_board[GRID_POS(from)], to))
+	{
 		m_board[GRID_POS(to)] = m_board[GRID_POS(from)], m_board[GRID_POS(from)] = nullptr;
-	else
-		return -1;
+		return 0;
+	}
 	
-	return 0;
+	return -1;
 }
 
 

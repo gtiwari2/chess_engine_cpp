@@ -8,7 +8,7 @@
 
 int main()
 {
-    static side curSide = white;
+    static Piece::side curSide = Piece::white;
     static std::string menuSelect, pieceToMove, locationToMoveTo;
 
     std::cout << "Welcome! Type play to start a new game or type exit to quit. Press Escape at any point during the game to return to the Main Menu." << std::endl;
@@ -26,7 +26,7 @@ int main()
     while (!(GetKeyState(VK_ESCAPE) & 0x8000))
     {
         // DefaultBoard->Draw();
-        std::cout << (curSide == white) ? "It is white's turn.\n" : "It is black's turn.\n";
+        std::cout << (curSide == Piece::white) ? "It is white's turn.\n" : "It is black's turn.\n";
         std::cout << "Enter the location of the piece you would like to move:" << std::endl;
         std::cin >> pieceToMove;
         //if (DefaultBoard->PieceExists())

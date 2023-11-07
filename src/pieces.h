@@ -6,42 +6,49 @@
 #define CHAR_EIGHT	72
 #define CHAR_A		49
 #define CHAR_H		56
+#define WHITE_END	8
+#define BLACK_END	1
 
 #define GRID_POS(position) (position.xPos * ROWS_COLS + position.yPos)
 
 class Board;
 
-enum side : signed char
-{
-	white = -1, black = 1
-};
-
 struct pos {
-	unsigned char xPos; // A (1) through H (8)
-	unsigned char yPos; // 1 through 8
+	// how to enforce final position range?
+	// (1 through 8)
+	signed char xPos; // A (1) through H (8)
+	signed char yPos; // 1 through 8
 
 	pos();
 
-	pos(unsigned char, unsigned char);
+	pos(signed char, signed char);
 
-	void setCoords(std::string coords);
+	char setCoords(std::string coords);
 
 	pos operator-(const pos& delta);
 
 	pos operator+(const pos& delta);
 
 	void operator+=(const pos& delta);
+
+	static friend std::ostream& operator<<(std::ostream& stream, const pos&);
 };
 
 
 class Piece
 {
+public:
+	enum side : signed char
+	{
+		black = -1, white = 1
+	};
+
 private:
 	pos m_coords;
 	side m_color;
 
 protected:
-	void Move(pos dest);
+	char Move(Board& curBoard, const pos dest);
 
 public:
 	Piece(side team, pos startingPos);
@@ -54,7 +61,7 @@ public:
 class Pawn : public Piece // private vs protected vs public inheritance??? TO DO
 {
 private:
-	bool unmoved = true;
+	bool unmoved {true};
 
 	enum pawnDir : signed char
 	{
@@ -62,10 +69,10 @@ private:
 	};
 
 public:
-	void MoveForward(unsigned char deltaX);
+	char MoveForward(Board& curBoard, unsigned char deltaX);
 
 	// take piece
-	void MoveDiagonal(pawnDir direction, bool enPassant);
+	char MoveDiagonal(Board& curBoard, pawnDir direction, bool enPassant);
 
 	using Piece::Piece;
 };

@@ -1,5 +1,6 @@
 #include "pieces.h"
 #include "board.h"
+#include <iostream>
 
 // note:
 // board checks (empty space, taking a piece etc.) will be made within the board class (TO DO)
@@ -9,15 +10,9 @@ pos::pos()
 {
 }
 
-pos::pos(unsigned char x, unsigned char y)
+pos::pos(signed char x, signed char y)
 	: xPos(x), yPos(y)
 {
-}
-
-void pos::setCoords(std::string coords)
-{
-	if (coords.length() == COORD_LEN && CHAR_ONE <= coords[0] && coords[0] <= CHAR_EIGHT && CHAR_A <= coords[1] && coords[1] <= CHAR_H)
-		xPos = coords[0], yPos = coords[1];
 }
 
 pos pos::operator-(const pos& delta)
@@ -36,47 +31,94 @@ void pos::operator+=(const pos& delta)
 	yPos += delta.yPos;
 }
 
+std::ostream& operator<<(std::ostream& stream, const pos& position)
+{
+	stream << position.xPos << ", " << position.yPos;
+	return stream;
+}
 
+	
 pos Piece::getCoords() const
 {
 	return m_coords;
 }
 
-side Piece::getSide() const
+Piece::side Piece::getSide() const
 {
 	return m_color;
 }
 
-void Piece::Move(pos dest)
+char pos::setCoords(std::string coords)
 {
-	m_coords = dest;
+	if (coords.length() == COORD_LEN && 
+		CHAR_ONE <= coords[0] && coords[0] <= CHAR_EIGHT && 
+		CHAR_A <= coords[1] && coords[1] <= CHAR_H)
+	{
+		xPos = coords[0] - (CHAR_ONE - 1), yPos = coords[1] - (CHAR_A - 1);
+		return 0;
+	}
+
+	return -1;
 }
 
-Piece::Piece(side team, pos startingPos)
+// calls board move function, does not check if move is valid for a piece
+char Piece::Move(Board& curBoard, const pos dest)
+{
+	if (curBoard.MovePiece(getCoords(), dest) == 0)
+	{
+		m_coords = dest;
+		return 0;
+	}
+
+	return -1;
+}
+
+Piece::Piece(Piece::side team, pos startingPos)
 	: m_coords(startingPos), m_color(team)
 {
 }
 
 
-void Pawn::MoveForward(unsigned char deltaX)
+char Pawn::MoveForward(Board& curBoard, unsigned char deltaX)
 {
+	// make sure pawn has not reached the end already
+	bool validMove = (getSide() == Piece::side::white) ? getCoords().yPos < WHITE_END : getCoords().yPos > BLACK_END;
+
+	if (!validMove)
+		return -1;
+
+	// if white moves forward -> y pos increases
+	// if black moves forward -> y pos decreases
+	// move 1 or 2 spaces forward
 	switch (deltaX)
 	{
 	case 2:
 		if (unmoved)
-			Move(pos(0, 2));
-		// TO DO else throw error
-		break;
+		{
+			unmoved = false;
+			return Move(curBoard, getCoords() + pos(0, 2 * getSide()));
+		}
+		else
+		{
+			std::cout << "Invalid move; pawns can only take two spaces if unmoved" << std::endl;
+			return -1;
+		}
 	case 1:
-		Move(pos(0, 1));
-		break;
+		unmoved = false;
+		// TO DO : check for promotion
+		// if ((getSide() == Piece::side::white) ? getCoords().yPos == WHITE_END - 1 : getCoords().yPos == BLACK_END + 1)
+		//	promote pawn:
+		//		remove pawn from location (delete at coordinate)
+		//		prompt user to select a piece
+		//		create new piece of that class at the coordinate
+		// else:
+		return Move(curBoard, getCoords() + pos(0, 1 * getSide()));
 	default:
-		// TO DO throw warning
-		break;
+		return -1;
 	}
 }
 
-void Pawn::MoveDiagonal(pawnDir direction, bool enPassant)
+char Pawn::MoveDiagonal(Board& curBoard, pawnDir direction, bool enPassant)
 {
 	// remove piece : TO DO
 
@@ -87,8 +129,10 @@ void Pawn::MoveDiagonal(pawnDir direction, bool enPassant)
 	else
 	{
 		//	remove (free) piece at loc
-		Move(pos((unsigned char)(direction * getSide()), getSide()));
+		Move(curBoard, getCoords() + pos((direction * getSide()), getSide()));
 	}
+
+	return -1;
 }
 
 
@@ -127,12 +171,7 @@ char Knight::Move(Board &curBoard, knightDir dir)
 		break;
 	}
 
-	if (curBoard.MovePiece(getCoords(), to) == 0)
-		Piece::Move(to);
-	else
-		return -1;
-
-	return 0;
+	return Piece::Move(curBoard, to);
 
 }
 

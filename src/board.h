@@ -23,18 +23,18 @@ private:
 
 	void m_DeleteBoard();
 
-	bool m_IsValidMove(Piece& mover, pos dest);
+	bool m_IsValidMove(const Piece& mover, const pos dest) const;
 
 public:
 	char offset;
 
 	Board(bool initBoard);
 
-	void ResetBoard(bool clearBoard = false);
+	void ResetBoard(const bool clearBoard = false);
 
 	void PrintBoard();
 
-	char MovePiece(pos from, pos to);
+	char MovePiece(const pos from, const pos to);
 
 	~Board();
 };
