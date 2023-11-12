@@ -37,6 +37,12 @@ std::ostream& operator<<(std::ostream& stream, const pos& position)
 	return stream;
 }
 
+std::ostream& operator>>(std::ostream& stream, const pos&)
+{
+	// TODO: insert return statement here
+	return stream;
+}
+
 	
 pos Piece::getCoords() const
 {
@@ -78,7 +84,9 @@ Piece::Piece(Piece::side team, pos startingPos)
 {
 }
 
+// TO DO: implement piece specific move functions
 
+// Pawn functions
 char Pawn::MoveForward(Board& curBoard, unsigned char deltaX)
 {
 	// make sure pawn has not reached the end already
@@ -135,6 +143,18 @@ char Pawn::MoveDiagonal(Board& curBoard, pawnDir direction, bool enPassant)
 	return -1;
 }
 
+char Pawn::getName()
+{
+	return 'P';
+}
+
+bool Pawn::canMoveTo(pos to)
+{
+	return true;
+}
+
+
+// Knight functions
 
 // returns 0 on success, -1 on failure
 char Knight::Move(Board &curBoard, knightDir dir)
@@ -175,25 +195,57 @@ char Knight::Move(Board &curBoard, knightDir dir)
 
 }
 
-/* TO DO: implement piece specific move functions
-
-class Bishop : public Piece
+char Knight::getName()
 {
+	return 'N';
+}
 
-};
-
-class Rook : public Piece
+bool Knight::canMoveTo(pos to)
 {
+	return true;
+}
 
-};
-
-class Queen : public Piece
+// Bishop functions
+char Bishop::getName()
 {
+	return 'B';
+}
 
-};
-
-class King : public Piece
+bool Bishop::canMoveTo(pos to)
 {
+	return true;
+}
 
-};
-*/
+// Rook functions
+char Rook::getName()
+{
+	return 'R';
+}
+
+bool Rook::canMoveTo(pos to)
+{
+	return true;
+}
+
+
+// King functions
+char King::getName()
+{
+	return 'K';
+}
+
+bool King::canMoveTo(pos to)
+{
+	return true;
+}
+
+// Queen functions
+char Queen::getName()
+{
+	return 'Q';
+}
+
+bool Queen::canMoveTo(pos to)
+{
+	return true;
+}

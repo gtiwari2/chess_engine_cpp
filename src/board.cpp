@@ -2,61 +2,40 @@
 #include "pieces.h"
 #include <iostream>
 
-// initialize Rook -> Knight -> Bishop -> Queen -> King to maintain correct offset
-
-// initializes Rooks/Knights/Bishops based on template type
-template <typename cavalryType>
-void Board::m_InitCavalry()
+// initializes a white and opposing black piece at the chosen offset (x coordinate)
+template <typename pieceType>
+void Board::m_InitPiece(char x, char y)
 {
-	m_board[offset] = new cavalryType(Piece::white, pos(offset, 0));
-	m_board[ROWS_COLS - 1 - offset] = new cavalryType(Piece::white, pos(ROWS_COLS - 1 - offset, 0));
-	m_board[GRID_SIZE - 1 - offset] = new cavalryType(Piece::black, pos(ROWS_COLS - 1 - offset, ROWS_COLS - 1));
-	m_board[GRID_SIZE - ROWS_COLS + offset] = new cavalryType(Piece::black, pos(offset, ROWS_COLS - 1));
-
-	offset++;
-}
-
-// initializes Queens and Kings based on template type
-template <typename royaltyType>
-void Board::m_InitRoyalty()
-{
-	m_board[offset] = new royaltyType(Piece::white, pos(offset, 0));
-	m_board[GRID_SIZE - (ROWS_COLS - offset)] = new royaltyType(Piece::black, pos(offset, ROWS_COLS - 1));
-
-	offset++;
-}
-
-
-// initializes Pawns
-void Board::m_InitPawns()
-{
-	Piece::side color {Piece::white};
-	char row {0};
-
-	for (char flip = 0; flip < 2; flip++, color = Piece::black, row = ROWS_COLS - 1)
-		for (char i = 0; i < ROWS_COLS; i++)
-			m_board[i] = new Pawn(color, pos(i, row));
+	m_board[x][y] = new pieceType(Piece::white, pos(x, y));
+	m_board[x][ROWS_COLS - 1 - y] = new pieceType(Piece::black, pos(x, ROWS_COLS - 1 - y));
 }
 
 
 // does NOT check if the piece can move that way (this is done by piece)
-// only checks if the dest pos is empty or has an enemy piece
+// checks if the dest pos is empty or has an enemy piece
+// and that the destination coordinates are within bounds
 bool Board::m_IsValidMove(const Piece& mover, const pos dest) const
 {
-	return (m_board[GRID_POS(dest)] == nullptr || m_board[GRID_POS(dest)]->getSide() != mover.getSide());
+	return	dest.xPos < ROWS_COLS && dest.xPos >= 0 &&
+			dest.yPos < ROWS_COLS && dest.yPos >= 0 &&
+			(m_board[dest.xPos][dest.yPos] == nullptr || m_board[dest.xPos][dest.yPos]->getSide() != mover.getSide());
 }
 
 // deletes all pieces on the board
 void Board::m_DeleteBoard()
 {
 	// free memory of pieces
-	for (char i = 0; i < GRID_SIZE; i++)
-		delete m_board[i], m_board[i] = nullptr;
+	for (char x = 0; x < ROWS_COLS; x++)
+		for (char y = 0; y < ROWS_COLS; y++)
+		{
+			delete m_board[x][y];
+			m_board[x][y] = nullptr;
+		}
 }
 
 // initializes a new board, including the pieces by default
-Board::Board(bool initBoard = true)
-	: m_board{nullptr}, m_boardInitialized(false), offset(0)
+Board::Board(bool initBoard)
+	: m_board{nullptr}, m_boardInitialized(false)
 {
 	if (initBoard)
 		ResetBoard(false);
@@ -68,14 +47,22 @@ void Board::ResetBoard(const bool clearBoard)
 		m_DeleteBoard();
 
 	// initialize pieces based on offset order
-	m_InitCavalry<Rook>();
-	m_InitCavalry<Knight>();
-	m_InitCavalry<Bishop>();
+	char x_off = 0;
 
-	m_InitRoyalty<Queen>();
-	m_InitRoyalty<King>();
+	m_InitPiece<Rook>(x_off);
+	m_InitPiece<Rook>(ROWS_COLS - 1 - x_off);
 
-	m_InitPawns();
+	m_InitPiece<Knight>(++x_off);
+	m_InitPiece<Knight>(ROWS_COLS - 1 - x_off);
+
+	m_InitPiece<Bishop>(++x_off);
+	m_InitPiece<Bishop>(ROWS_COLS - 1 - x_off);
+
+	m_InitPiece<Queen>(++x_off);
+	m_InitPiece<King>(++x_off);
+
+	for (x_off = 0; x_off < ROWS_COLS; x_off++)
+		m_InitPiece<Pawn>(x_off, 1);
 
 	// board is now initialized
 	m_boardInitialized = true;
@@ -83,31 +70,39 @@ void Board::ResetBoard(const bool clearBoard)
 
 void Board::PrintBoard()
 {
-	// TO DO: loop through each piece and print a character accordingly
-	for (char i = 0; i < ROWS_COLS; i++)
+	// loops through each piece and print a character accordingly
+	for (char y = 0; y < ROWS_COLS; y++)
 	{
-		for (char j = 0; j < ROWS_COLS; j++)
+		std::cout << "\n________________________\n";
+
+		for (char x = 0; x < ROWS_COLS; x++)
 		{
-			Piece* curPiece = m_board[i * ROWS_COLS + j];
+			Piece* curPiece = m_board[x][y];
+
 			// check if there is really a piece here (nullptr or not)
 			if (curPiece != nullptr)
-				// print character depending on what type of piece it is
-				std::cout << '|P|'; // placeholder
+				std::cout << '|' << curPiece->getName() << '|';
 			else
-				std::cout << '| |';
+				std::cout << "| |";
 		}
-
-		std::cout << std::endl << "________________________" << std::endl;
 	}
+
+	std::cout << "\n________________________" << std::endl;
 }
 
 
-// returns 0 on success, -1 on failure; checks if move is valid in terms of the board, not piece
+// returns 0 on success, -1 on failure; checks if move is valid in terms of the board, not piece and then moves it
 char Board::MovePiece(const pos from, const pos to)
 {
-	if (m_board[GRID_POS(from)] != nullptr && m_IsValidMove(*m_board[GRID_POS(from)], to))
+	Piece*& fromPiece = m_board[from.xPos][from.yPos];
+	Piece*& toPiece = m_board[to.xPos][to.yPos];
+	if (fromPiece != nullptr && m_IsValidMove(*fromPiece, to) && fromPiece->canMoveTo(to))
 	{
-		m_board[GRID_POS(to)] = m_board[GRID_POS(from)], m_board[GRID_POS(from)] = nullptr;
+		if (toPiece != nullptr)
+			delete toPiece;
+		toPiece = fromPiece;
+		fromPiece = nullptr;
+
 		return 0;
 	}
 	
@@ -120,5 +115,4 @@ Board::~Board()
 {
 	m_DeleteBoard();
 	m_boardInitialized = false;
-	offset = 0;
 }

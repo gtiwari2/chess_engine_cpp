@@ -31,7 +31,8 @@ struct pos {
 
 	void operator+=(const pos& delta);
 
-	static friend std::ostream& operator<<(std::ostream& stream, const pos&);
+	friend std::ostream& operator<<(std::ostream& stream, const pos&);
+	friend std::ostream& operator>>(std::ostream& stream, const pos&);
 };
 
 
@@ -42,6 +43,10 @@ public:
 	{
 		black = -1, white = 1
 	};
+
+	virtual char getName() = 0;
+
+	virtual bool canMoveTo(pos to) = 0;
 
 private:
 	pos m_coords;
@@ -75,6 +80,10 @@ public:
 	char MoveDiagonal(Board& curBoard, pawnDir direction, bool enPassant);
 
 	using Piece::Piece;
+
+	virtual char getName() override;
+
+	virtual bool canMoveTo(pos to) override;
 };
 
 // TO DO: declare piece-specific move functions
@@ -85,27 +94,57 @@ class Knight : public Piece
 		downLeft, leftDown, leftUp, upLeft, upRight, rightUp, rightDown, downRight
 	};
 
+public:
+
 	char Move(Board &curBoard, knightDir dir);
 
 	using Piece::Piece;
+
+	virtual char getName() override;
+
+	virtual bool canMoveTo(pos to) override;
 };
 
 class Bishop : public Piece
 {
+public:
+
 	using Piece::Piece;
+
+	virtual char getName() override;
+
+	virtual bool canMoveTo(pos to) override;
 };
 
 class Rook : public Piece
 {
+public:
+
 	using Piece::Piece;
+
+	virtual char getName() override;
+
+	virtual bool canMoveTo(pos to) override;
 };
 
 class Queen : public Piece
 {
+public:
+
 	using Piece::Piece;
+
+	virtual char getName() override;
+
+	virtual bool canMoveTo(pos to) override;
 };
 
 class King : public Piece
 {
+public:
+
 	using Piece::Piece;
+
+	virtual char getName() override;
+
+	virtual bool canMoveTo(pos to) override;
 };

@@ -20,7 +20,9 @@ int main()
         return 0;
 
     // inits boards by default
-    //Board* DefaultBoard;
+    Board DefaultBoard;
+
+    DefaultBoard.PrintBoard();
 
     // game loop
     while (!(GetKeyState(VK_ESCAPE) & 0x8000))
