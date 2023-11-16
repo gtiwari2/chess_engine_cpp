@@ -44,19 +44,23 @@ public:
 		black = -1, white = 1
 	};
 
-	virtual char getName() = 0;
+	// returns the character that represents the piece
+	virtual char getName() const = 0;
 
+	// returns if the target position would be a valid move for the piece without checking the board or bounds
 	virtual bool canMoveTo(pos to) = 0;
+
+	// used for Pawn only
+	virtual void moved();
 
 private:
 	pos m_coords;
 	side m_color;
 
-protected:
-	char Move(Board& curBoard, const pos dest);
-
 public:
 	Piece(side team, pos startingPos);
+
+	char Move(Board& curBoard, pos dest);
 
 	pos getCoords() const;
 
@@ -74,33 +78,22 @@ private:
 	};
 
 public:
-	char MoveForward(Board& curBoard, unsigned char deltaX);
-
-	// take piece
-	char MoveDiagonal(Board& curBoard, pawnDir direction, bool enPassant);
-
 	using Piece::Piece;
 
-	virtual char getName() override;
+	virtual char getName() const override;
 
 	virtual bool canMoveTo(pos to) override;
+
+	virtual void moved() override;
 };
 
 // TO DO: declare piece-specific move functions
 class Knight : public Piece
 {
-	enum knightDir : signed char
-	{
-		downLeft, leftDown, leftUp, upLeft, upRight, rightUp, rightDown, downRight
-	};
-
 public:
-
-	char Move(Board &curBoard, knightDir dir);
-
 	using Piece::Piece;
 
-	virtual char getName() override;
+	virtual char getName() const override;
 
 	virtual bool canMoveTo(pos to) override;
 };
@@ -111,7 +104,7 @@ public:
 
 	using Piece::Piece;
 
-	virtual char getName() override;
+	virtual char getName() const override;
 
 	virtual bool canMoveTo(pos to) override;
 };
@@ -122,7 +115,7 @@ public:
 
 	using Piece::Piece;
 
-	virtual char getName() override;
+	virtual char getName() const override;
 
 	virtual bool canMoveTo(pos to) override;
 };
@@ -133,7 +126,7 @@ public:
 
 	using Piece::Piece;
 
-	virtual char getName() override;
+	virtual char getName() const override;
 
 	virtual bool canMoveTo(pos to) override;
 };
@@ -144,7 +137,7 @@ public:
 
 	using Piece::Piece;
 
-	virtual char getName() override;
+	virtual char getName() const override;
 
 	virtual bool canMoveTo(pos to) override;
 };

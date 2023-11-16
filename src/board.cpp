@@ -12,13 +12,24 @@ void Board::m_InitPiece(char x, char y)
 
 
 // does NOT check if the piece can move that way (this is done by piece)
-// checks if the dest pos is empty or has an enemy piece
-// and that the destination coordinates are within bounds
+// checks that the destination coordinates are within bounds
+// and if the dest pos is empty or has an enemy piece
+// if the Piece is a Pawn, it checks that when it takes a piece there is a piece to take on the board
 bool Board::m_IsValidMove(const Piece& mover, const pos dest) const
 {
+			/* bounds check */
 	return	dest.xPos < ROWS_COLS && dest.xPos >= 0 &&
 			dest.yPos < ROWS_COLS && dest.yPos >= 0 &&
-			(m_board[dest.xPos][dest.yPos] == nullptr || m_board[dest.xPos][dest.yPos]->getSide() != mover.getSide());
+
+			/* Pawn moving forward or non-Pawn pieces check */
+			((mover.getName() != 'P' || mover.getName() == 'P' && dest.xPos == mover.getCoords().xPos) &&
+			m_board[dest.xPos][dest.yPos] == nullptr || 
+			m_board[dest.xPos][dest.yPos] != nullptr && m_board[dest.xPos][dest.yPos]->getSide() != mover.getSide()) ||
+
+			/* special Pawn taking piece case: if Pawn, and moving diagonally, then dest must have enemy piece */
+			(mover.getName() == 'P' &&
+			dest.xPos != mover.getCoords().xPos &&
+			m_board[dest.xPos][dest.yPos] != nullptr && m_board[dest.xPos][dest.yPos]->getSide() != mover.getSide());
 }
 
 // deletes all pieces on the board

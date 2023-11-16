@@ -1,5 +1,6 @@
 #include "pieces.h"
 #include "board.h"
+#include "utils.h"
 #include <iostream>
 
 // note:
@@ -73,6 +74,11 @@ char Piece::Move(Board& curBoard, const pos dest)
 	if (curBoard.MovePiece(getCoords(), dest) == 0)
 	{
 		m_coords = dest;
+
+		// if Pawn, set unmoved = false;
+		if (getName() == 'P')
+			moved();
+
 		return 0;
 	}
 
@@ -84,168 +90,116 @@ Piece::Piece(Piece::side team, pos startingPos)
 {
 }
 
-// TO DO: implement piece specific move functions
+void Piece::moved()
+{
+	return;
+}
+
+// TO DO: implement piece specific canMove functions
 
 // Pawn functions
-char Pawn::MoveForward(Board& curBoard, unsigned char deltaX)
-{
-	// make sure pawn has not reached the end already
-	bool validMove = (getSide() == Piece::side::white) ? getCoords().yPos < WHITE_END : getCoords().yPos > BLACK_END;
-
-	if (!validMove)
-		return -1;
-
-	// if white moves forward -> y pos increases
-	// if black moves forward -> y pos decreases
-	// move 1 or 2 spaces forward
-	switch (deltaX)
-	{
-	case 2:
-		if (unmoved)
-		{
-			unmoved = false;
-			return Move(curBoard, getCoords() + pos(0, 2 * getSide()));
-		}
-		else
-		{
-			std::cout << "Invalid move; pawns can only take two spaces if unmoved" << std::endl;
-			return -1;
-		}
-	case 1:
-		unmoved = false;
-		// TO DO : check for promotion
-		// if ((getSide() == Piece::side::white) ? getCoords().yPos == WHITE_END - 1 : getCoords().yPos == BLACK_END + 1)
-		//	promote pawn:
-		//		remove pawn from location (delete at coordinate)
-		//		prompt user to select a piece
-		//		create new piece of that class at the coordinate
-		// else:
-		return Move(curBoard, getCoords() + pos(0, 1 * getSide()));
-	default:
-		return -1;
-	}
-}
-
-char Pawn::MoveDiagonal(Board& curBoard, pawnDir direction, bool enPassant)
-{
-	// remove piece : TO DO
-
-	if (enPassant)
-	{
-		//	remove (free) piece at loc - color
-	}
-	else
-	{
-		//	remove (free) piece at loc
-		Move(curBoard, getCoords() + pos((direction * getSide()), getSide()));
-	}
-
-	return -1;
-}
-
-char Pawn::getName()
+char Pawn::getName() const
 {
 	return 'P';
 }
 
 bool Pawn::canMoveTo(pos to)
 {
-	return true;
+	pos curPos{ getCoords() };
+	side pieceCol{ getSide() };
+
+	// moving in the wrong direction
+	if (pieceCol == white && curPos.yPos >= to.yPos || pieceCol == black && curPos.yPos <= to.yPos)
+		return false;
+
+	// case: moving forward
+	if (curPos.xPos == to.xPos)
+	{
+		unsigned char yDiff{ (unsigned char) abs(curPos.yPos - to.yPos) };
+
+		// correct direction but too far or not at all
+		return (yDiff > 0 && (unmoved && yDiff < 3 || !unmoved && yDiff == 1));
+	}
+	// case: moving diagonally to take a piece
+	// board isValidMove function checks that if moving diagonally, the Pawn is moving to an enemy piece loc
+	else
+		return (abs(curPos.xPos - to.xPos) == 1 && abs(curPos.yPos - to.yPos) == 1);
 }
 
+void Pawn::moved()
+{
+	unmoved = false;
+}
 
 // Knight functions
 
-// returns 0 on success, -1 on failure
-char Knight::Move(Board &curBoard, knightDir dir)
-{
-	pos to;
-
-	switch (dir)
-	{
-	case downLeft:
-		to = (getCoords() - pos(1, 2));
-		break;
-	case leftDown:
-		to = (getCoords() - pos(2, 1));
-		break;
-	case leftUp:
-		to = (getCoords() - pos(2, 0) + pos(0, 1));
-		break;
-	case upLeft:
-		to = (getCoords() + pos(0, 2) - pos(1, 0));
-		break;
-	case upRight:
-		to = (getCoords() + pos(2, 1));
-		break;
-	case rightUp:
-		to = (getCoords() + pos(1, 2));
-		break;
-	case rightDown:
-		to = (getCoords() + pos(2, 0) - pos(0, 1));
-		break;
-	case downRight:
-		to = (getCoords() - pos(0, 2) + pos(1, 0));
-		break;
-	default:
-		break;
-	}
-
-	return Piece::Move(curBoard, to);
-
-}
-
-char Knight::getName()
+char Knight::getName() const
 {
 	return 'N';
 }
 
 bool Knight::canMoveTo(pos to)
 {
-	return true;
+	pos curPos{ getCoords() };
+
+	// must move in L shape (1 in x dir and 2 in y or vice versa)
+	return (abs(curPos.xPos - to.xPos) == 1 && abs(curPos.yPos - to.yPos) == 2 || abs(curPos.yPos - to.yPos) == 1 && abs(curPos.xPos - to.xPos) == 2);
 }
 
 // Bishop functions
-char Bishop::getName()
+char Bishop::getName() const
 {
 	return 'B';
 }
 
 bool Bishop::canMoveTo(pos to)
 {
-	return true;
+	pos curPos{ getCoords() };
+
+	// must move in a diagonal
+	return (abs(curPos.xPos - to.xPos) == abs(curPos.yPos - to.yPos) && abs(curPos.xPos - to.yPos) > 0);
 }
 
 // Rook functions
-char Rook::getName()
+char Rook::getName() const
 {
 	return 'R';
 }
 
 bool Rook::canMoveTo(pos to)
 {
-	return true;
+	pos curPos { getCoords() };
+
+	// must move in either x or y direction but not both
+	return (curPos.xPos == to.xPos && curPos.yPos != to.yPos || curPos.yPos == to.yPos && curPos.xPos != to.xPos);
 }
 
-
 // King functions
-char King::getName()
+char King::getName() const
 {
 	return 'K';
 }
 
 bool King::canMoveTo(pos to)
 {
-	return true;
+	pos curPos{ getCoords() };
+	unsigned char moveDiff{ (unsigned char) (abs(curPos.xPos - to.xPos) + abs(curPos.yPos - to.yPos)) };
+
+	// can move one space in any direction, including diagonals (restricted to 1 in x and y direction)
+	return (moveDiff > 0 && moveDiff < 3);
 }
 
 // Queen functions
-char Queen::getName()
+char Queen::getName() const
 {
 	return 'Q';
 }
 
 bool Queen::canMoveTo(pos to)
 {
-	return true;
+	pos curPos{ getCoords() };
+
+	// can move in either column, rank, or diagonal (girlboss)
+	return	(curPos.xPos == to.xPos && curPos.yPos != to.yPos || curPos.yPos == to.yPos && curPos.xPos != to.xPos) ||
+			(abs(curPos.xPos - to.xPos) == abs(curPos.yPos - to.yPos) && abs(curPos.xPos - to.yPos) > 0);
 }
