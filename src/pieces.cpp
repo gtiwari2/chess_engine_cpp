@@ -11,9 +11,18 @@ pos::pos()
 {
 }
 
-pos::pos(signed char x, signed char y)
+pos::pos(int x, int y)
 	: xPos(x), yPos(y)
 {
+}
+
+/* for both x and y, sets to 1/-1 if pos/neg value respectively */
+void pos::normalizeXY()
+{
+	if (xPos != 0) 
+		xPos /= xPos;
+	if (yPos != 0) 
+		yPos /= yPos;
 }
 
 pos pos::operator-(const pos& delta)
@@ -24,6 +33,16 @@ pos pos::operator-(const pos& delta)
 pos pos::operator+(const pos& delta)
 {
 	return pos(xPos + delta.xPos, yPos + delta.yPos);
+}
+
+const bool pos::operator==(const pos& other)
+{
+	return (xPos == other.xPos && yPos == other.yPos);
+}
+
+const bool pos::operator!=(const pos& other)
+{
+	return (xPos != other.xPos || yPos != other.yPos);
 }
 
 void pos::operator+=(const pos& delta) 
@@ -38,9 +57,12 @@ std::ostream& operator<<(std::ostream& stream, const pos& position)
 	return stream;
 }
 
-std::ostream& operator>>(std::ostream& stream, const pos&)
+std::istream& operator>>(std::istream& stream, pos& position)
 {
-	// TODO: insert return statement here
+	std::cout << "Enter x position as an integer: ";
+	stream >> position.xPos;
+	std::cout << "Enter y position as an integer: ";
+	stream >> position.yPos;
 	return stream;
 }
 

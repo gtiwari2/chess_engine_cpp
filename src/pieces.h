@@ -2,26 +2,27 @@
 #include <string>
 
 #define COORD_LEN	2
-#define CHAR_ONE	65
-#define CHAR_EIGHT	72
-#define CHAR_A		49
-#define CHAR_H		56
 #define WHITE_END	8
 #define BLACK_END	1
-
-#define GRID_POS(position) (position.xPos * ROWS_COLS + position.yPos)
+#define CHAR_0		48
+#define CHAR_ONE	49
+#define CHAR_EIGHT	56
+#define CHAR_A		65
+#define CHAR_H		104
 
 class Board;
 
 struct pos {
 	// how to enforce final position range?
 	// (1 through 8)
-	signed char xPos; // A (1) through H (8)
-	signed char yPos; // 1 through 8
+	int xPos; // A (1) through H (8)
+	int yPos; // 1 through 8
 
 	pos();
 
-	pos(signed char, signed char);
+	pos(int, int);
+
+	void normalizeXY();
 
 	char setCoords(std::string coords);
 
@@ -29,10 +30,14 @@ struct pos {
 
 	pos operator+(const pos& delta);
 
+	const bool operator==(const pos& other);
+
+	const bool operator!=(const pos& other);
+
 	void operator+=(const pos& delta);
 
 	friend std::ostream& operator<<(std::ostream& stream, const pos&);
-	friend std::ostream& operator>>(std::ostream& stream, const pos&);
+	friend std::istream& operator>>(std::istream& stream, pos&);
 };
 
 
