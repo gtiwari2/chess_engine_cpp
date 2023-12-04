@@ -11,6 +11,7 @@ int main()
     static Piece::side curSide = Piece::white;
     static std::string menuSelect;
     static pos pieceToMove, locationToMoveTo;
+    static Piece* curPiece;
 
     std::cout << "Welcome! Type play to start a new game or type exit to quit. Press Escape at any point during the game to return to the Main Menu." << std::endl;
     std::cin >> menuSelect;
@@ -35,11 +36,16 @@ int main()
             std::cout << "It is white's turn.\n";
         else
             std::cout << "It is black's turn.\n";
+
+        if (DefaultBoard.isInCheck == curSide)
+            std::cout << "Beware, you are in check.\n"; // limit move options?
+
+
         std::cout << "Enter the location of the piece you would like to move:" << std::endl;
         std::cin >> pieceToMove;
         std::cout << pieceToMove << std::endl;
         //std::cout << DefaultBoard.m_board[pieceToMove.xPos][pieceToMove.yPos]->getName();
-        //if (DefaultBoard->PieceExists())
+        Piece* curPiece = DefaultBoard.getPiece(pieceToMove);
 
         std::cout << "Enter the location you would like to move it to:" << std::endl;
         std::cin >> locationToMoveTo;
@@ -49,8 +55,25 @@ int main()
             // failure
             std::cout << "Invalid move.\n";
         else
-            // next turn
+        {
+            // they moved and are still in check : checkmate!
+            if (DefaultBoard.isInCheck == curSide)
+            {
+                std::cout << "Checkmate! ";
+                if (curSide == Piece::side::white)
+                    std::cout << "Black wins!" << std::endl;
+                else
+                    std::cout << "White wins!" << std::endl;
+
+                return 0;
+            }
+
+            DefaultBoard.IsInCheck(curPiece);
+
+            // go to next turn
             curSide = (curSide == Piece::white) ? Piece::black : Piece::white;
+        }
+
         // DefaultBoard->ValidateMove(<coords or chars?>);
     }
 

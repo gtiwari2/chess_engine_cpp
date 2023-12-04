@@ -20,9 +20,9 @@ pos::pos(int x, int y)
 void pos::normalizeXY()
 {
 	if (xPos != 0) 
-		xPos /= xPos;
+		xPos /= abs(xPos);
 	if (yPos != 0) 
-		yPos /= yPos;
+		yPos /= abs(yPos);
 }
 
 pos pos::operator-(const pos& delta)

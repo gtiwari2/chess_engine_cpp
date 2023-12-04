@@ -46,7 +46,7 @@ class Piece
 public:
 	enum side : signed char
 	{
-		black = -1, white = 1
+		black = -1, neither = 0, white = 1
 	};
 
 	// returns the character that represents the piece

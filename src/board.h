@@ -1,8 +1,8 @@
 #pragma once
+#include "pieces.h"
 
-#define ROWS_COLS 8
-
-class Piece;
+#define ROWS_COLS	8
+#define KING_X		4
 
 struct pos;
 
@@ -10,6 +10,8 @@ class Board
 {
 private:
 	bool m_boardInitialized;
+
+	Piece *m_BlackKing { nullptr }, *m_WhiteKing { nullptr };
 
 	template <typename pieceType>
 	void m_InitPiece(char x, char y = 0);
@@ -23,6 +25,8 @@ private:
 public:
 	Piece* m_board[ROWS_COLS][ROWS_COLS];
 
+	Piece::side mutable isInCheck = Piece::side::neither;
+
 	Board(bool initBoard = true);
 
 	void ResetBoard(const bool clearBoard = false);
@@ -31,7 +35,11 @@ public:
 
 	signed char getPieceSide(const pos) const;
 
+	Piece* getPiece(const pos) const;
+
 	char MovePiece(const pos from, const pos to);
+
+	Piece::side IsInCheck(Piece *) const;
 
 	~Board();
 };

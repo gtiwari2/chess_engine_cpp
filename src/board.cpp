@@ -1,5 +1,4 @@
 #include "board.h"
-#include "pieces.h"
 #include <iostream>
 
 // initializes a white and opposing black piece at the chosen offset (x coordinate)
@@ -39,21 +38,29 @@ bool Board::m_IsEmptyPath(pos start, pos end) const
 bool Board::m_IsValidMove(Piece* &mover, const pos dest) const
 {
 			/* bounds check */
-	return	dest.xPos < ROWS_COLS && dest.xPos >= 0 &&
-			dest.yPos < ROWS_COLS && dest.yPos >= 0 &&
+	bool inBounds =
+			dest.xPos < ROWS_COLS && dest.xPos >= 0 &&
+			dest.yPos < ROWS_COLS && dest.yPos >= 0;
+
+	char pieceName = mover->getName();
 
 			/* check for pieces existing in path (exception for knights) */
-			(mover->getName() == 'N' || m_IsEmptyPath(mover->getCoords(), dest)) &&
+	bool notBlocked =
+			(mover->getName() == 'N' || m_IsEmptyPath(mover->getCoords(), dest));
 
 			/* Pawn moving forward or non-Pawn pieces check */
+	bool destClear =
 			((mover->getName() != 'P' || mover->getName() == 'P' && dest.xPos == mover->getCoords().xPos) &&
-			m_board[dest.xPos][dest.yPos] == nullptr || 
-			m_board[dest.xPos][dest.yPos] != nullptr && m_board[dest.xPos][dest.yPos]->getSide() != mover->getSide()) ||
+			m_board[dest.xPos][dest.yPos] == nullptr ||
+			mover->getName() != 'P' && m_board[dest.xPos][dest.yPos] != nullptr && m_board[dest.xPos][dest.yPos]->getSide() != mover->getSide());
 
 			/* special Pawn taking piece case: if Pawn, and moving diagonally, then dest must have enemy piece */
+	bool pawnTakingValidPiece =
 			(mover->getName() == 'P' &&
 			dest.xPos != mover->getCoords().xPos &&
 			m_board[dest.xPos][dest.yPos] != nullptr && m_board[dest.xPos][dest.yPos]->getSide() != mover->getSide());
+
+	return inBounds && notBlocked && (destClear || pawnTakingValidPiece);
 }
 
 // deletes all pieces on the board
@@ -99,6 +106,10 @@ void Board::ResetBoard(const bool clearBoard)
 	for (x_off = 0; x_off < ROWS_COLS; x_off++)
 		m_InitPiece<Pawn>(x_off, 1);
 
+	// set king pieces
+	m_BlackKing = m_board[KING_X][ROWS_COLS-1];
+	m_WhiteKing = m_board[KING_X][0];
+
 	// board is now initialized
 	m_boardInitialized = true;
 
@@ -125,6 +136,11 @@ void Board::PrintBoard()
 	}
 
 	std::cout << "\n ________________________\n  A  B  C  D  E  F  G  H \n" << std::endl;
+}
+
+Piece* Board::getPiece(const pos piecePos) const
+{
+	return m_board[piecePos.xPos][piecePos.yPos];
 }
 
 signed char Board::getPieceSide(const pos piecePos) const
@@ -161,6 +177,21 @@ char Board::MovePiece(const pos from, const pos to)
 	
 	return -1;
 }
+
+Piece::side Board::IsInCheck(Piece *lastMovingPiece) const
+{
+	Piece *enemyKing = (lastMovingPiece->getSide() == Piece::white) ? m_BlackKing : m_WhiteKing;
+	pos enemyKingCoords = enemyKing->getCoords();
+
+	if (lastMovingPiece->canMoveTo(enemyKingCoords) && m_IsValidMove(lastMovingPiece, enemyKingCoords))
+		isInCheck = enemyKing->getSide();
+	else
+		isInCheck = Piece::side::neither;
+
+	return isInCheck;
+}
+
+
 
 
 // free/reset memory and vars
