@@ -1,6 +1,13 @@
 #include "board.h"
 #include <iostream>
 
+// initializes a single piece of the chosen side at the given space
+template <typename pieceType>
+void Board::m_InitSingularPiece(Piece::side pieceSide, pos pieceLoc)
+{
+	m_board[pieceLoc.xPos][pieceLoc.yPos] = new pieceType(pieceSide, pieceLoc);
+}
+
 // initializes a white and opposing black piece at the chosen offset (x coordinate)
 template <typename pieceType>
 void Board::m_InitPiece(char x, char y)
@@ -23,7 +30,7 @@ bool Board::m_IsEmptyPath(pos start, pos end) const
 	do
 	{
 		start += increment;
-		if (m_board[start.xPos][start.yPos] != nullptr)
+		if (start != end && m_board[start.xPos][start.yPos] != nullptr)
 			return false;
 
 	} while (start != end);
@@ -172,6 +179,20 @@ char Board::MovePiece(const pos from, const pos to)
 		toPiece = fromPiece;
 		fromPiece = nullptr;
 
+		// update piece's coordinates
+		toPiece->setCoords(to);
+
+		// pawn reached the end, promote it
+		if (toPiece != nullptr && toPiece->getName() == 'P' && (to.yPos == WHITE_END || to.yPos == BLACK_END))
+		{
+			char promoted;
+			do
+			{
+				promoted = m_PromotePawn(to);
+			} while (!promoted);
+		}
+
+
 		return 0;
 	}
 	
@@ -192,7 +213,41 @@ Piece::side Board::IsInCheck(Piece *lastMovingPiece) const
 }
 
 
+// returns true on success, false on failure (retry)
+bool Board::m_PromotePawn(pos pawnLoc)
+{
+	Piece* &Pawn = m_board[pawnLoc.xPos][pawnLoc.yPos];
+	Piece::side pawnSide = Pawn->getSide();
+	char newPiece;
 
+	std::cout << "Pawn promotion! Enter a character (K, B, R, or Q) to choose your new piece: ";
+
+	std::cin >> newPiece;
+
+	switch (newPiece)
+	{
+	case 'K':
+		delete Pawn;
+		m_InitSingularPiece<Knight>(pawnSide, pawnLoc);
+		break;
+	case 'B':
+		delete Pawn;
+		m_InitSingularPiece<Bishop>(pawnSide, pawnLoc);
+		break;
+	case 'R':
+		delete Pawn;
+		m_InitSingularPiece<Rook>(pawnSide, pawnLoc);
+		break;
+	case 'Q':
+		delete Pawn;
+		m_InitSingularPiece<Queen>(pawnSide, pawnLoc);
+		break;
+	default:
+		return false;
+	}
+
+	return true;
+}
 
 // free/reset memory and vars
 Board::~Board()

@@ -77,17 +77,9 @@ Piece::side Piece::getSide() const
 	return m_color;
 }
 
-char pos::setCoords(std::string coords)
+void Piece::setCoords(pos newCoords)
 {
-	if (coords.length() == COORD_LEN && 
-		CHAR_ONE <= coords[0] && coords[0] <= CHAR_EIGHT && 
-		CHAR_A <= coords[1] && coords[1] <= CHAR_H)
-	{
-		xPos = coords[0] - (CHAR_ONE - 1), yPos = coords[1] - (CHAR_A - 1);
-		return 0;
-	}
-
-	return -1;
+	m_coords = newCoords;
 }
 
 // calls board move function, does not check if move is valid for a piece

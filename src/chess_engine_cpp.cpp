@@ -46,7 +46,7 @@ int main()
         std::cout << pieceToMove << std::endl;
         //std::cout << DefaultBoard.m_board[pieceToMove.xPos][pieceToMove.yPos]->getName();
         Piece* curPiece = DefaultBoard.getPiece(pieceToMove);
-
+        
         std::cout << "Enter the location you would like to move it to:" << std::endl;
         std::cin >> locationToMoveTo;
         std::cout << locationToMoveTo << std::endl;
@@ -56,8 +56,11 @@ int main()
             std::cout << "Invalid move.\n";
         else
         {
+            // update piece in case of promotion
+            curPiece = DefaultBoard.getPiece(locationToMoveTo);
+
             // they moved and are still in check : checkmate!
-            if (DefaultBoard.isInCheck == curSide)
+            if (DefaultBoard.IsInCheck(curPiece) == curSide)
             {
                 std::cout << "Checkmate! ";
                 if (curSide == Piece::side::white)

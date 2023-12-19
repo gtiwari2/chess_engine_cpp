@@ -2,8 +2,8 @@
 #include <string>
 
 #define COORD_LEN	2
-#define WHITE_END	8
-#define BLACK_END	1
+#define WHITE_END	7
+#define BLACK_END	0
 #define CHAR_0		48
 #define CHAR_ONE	49
 #define CHAR_EIGHT	56
@@ -70,6 +70,8 @@ public:
 	pos getCoords() const;
 
 	side getSide() const;
+
+	void setCoords(pos newCoords);
 };
 
 class Pawn : public Piece // private vs protected vs public inheritance??? TO DO

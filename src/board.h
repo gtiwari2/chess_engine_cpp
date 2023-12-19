@@ -16,11 +16,16 @@ private:
 	template <typename pieceType>
 	void m_InitPiece(char x, char y = 0);
 
+	template <typename pieceType>
+	void m_InitSingularPiece(Piece::side pieceSide, pos pieceLoc);
+
 	void m_DeleteBoard();
 
 	bool m_IsEmptyPath(pos start, pos end) const;
 
 	bool m_IsValidMove(Piece* &mover, const pos dest) const;
+
+	bool m_PromotePawn(pos pawnLoc);
 
 public:
 	Piece* m_board[ROWS_COLS][ROWS_COLS];
@@ -39,7 +44,7 @@ public:
 
 	char MovePiece(const pos from, const pos to);
 
-	Piece::side IsInCheck(Piece *) const;
+	Piece::side IsInCheck(Piece *lastMovingPiece) const;
 
 	~Board();
 };
