@@ -101,6 +101,12 @@ void Board::ResetBoard(const bool clearBoard)
 	m_InitPiece<Rook>(x_off);
 	m_InitPiece<Rook>(ROWS_COLS - 1 - x_off);
 
+	Rook *leftWhite = (Rook *) m_board[0][BLACK_END], *rightWhite = (Rook *) m_board[ROWS_COLS-1][BLACK_END];
+	leftWhite->startingHalf = Piece::half::left, rightWhite->startingHalf = Piece::half::left;
+
+	Rook *rightBlack = (Rook *) m_board[0][WHITE_END], *leftBlack = (Rook *) m_board[ROWS_COLS - 1][WHITE_END];
+	leftBlack ->startingHalf = Piece::half::left, rightBlack->startingHalf = Piece::half::left;
+
 	m_InitPiece<Knight>(++x_off);
 	m_InitPiece<Knight>(ROWS_COLS - 1 - x_off);
 
@@ -114,8 +120,8 @@ void Board::ResetBoard(const bool clearBoard)
 		m_InitPiece<Pawn>(x_off, 1);
 
 	// set king pieces
-	m_BlackKing = m_board[KING_X][ROWS_COLS-1];
-	m_WhiteKing = m_board[KING_X][0];
+	m_BlackKing = (King *) m_board[KING_X][ROWS_COLS-1];
+	m_WhiteKing = (King *) m_board[KING_X][0];
 
 	// board is now initialized
 	m_boardInitialized = true;
@@ -182,8 +188,76 @@ char Board::MovePiece(const pos from, const pos to)
 		// update piece's coordinates
 		toPiece->setCoords(to);
 
+		// if the rook moves, the king can no longer castle *on that side*
+		if (toPiece->getName() == 'R')
+		{
+			Piece::half rookHalf = ((Rook *&) toPiece)->startingHalf;
+			if (toPiece->getSide() == Piece::side::white)
+				m_WhiteKing->canCastle((rookHalf == -1), (rookHalf == 1));
+			else
+				m_BlackKing->canCastle((rookHalf == -1), (rookHalf == 1));
+		}
+		// king just moved
+		else if (toPiece->getName() == 'K')
+		{
+			if (((King*)toPiece)->isCastling())
+			{
+				// toggle can castle and is castling to false
+				((King*)toPiece)->canCastle(true, true);
+				((King*)toPiece)->isCastling(true);
+
+				int KingX = toPiece->getCoords().xPos;
+				// Rook moves one step closer to the center than the king
+				int RookNewX = (KingX < 4) ? (KingX + 1) : (KingX - 1);
+
+				// move rook
+				switch (KingX)
+				{
+				case 2:
+				{
+					if (toPiece->getSide() == Piece::side::white)
+					{
+						Piece*& Rook = m_board[0][BLACK_END], *& moveTo = m_board[RookNewX][BLACK_END];
+						moveTo = Rook;
+						Rook = nullptr;
+						moveTo->setCoords(pos(RookNewX, BLACK_END));
+					}
+					else
+					{
+						Piece*& Rook = m_board[0][WHITE_END], *& moveTo = m_board[RookNewX][WHITE_END];
+						moveTo = Rook;
+						Rook = nullptr;
+						moveTo->setCoords(pos(RookNewX, WHITE_END));
+					}
+
+					break;
+				}
+				case 6:
+				{
+					if (toPiece->getSide() == Piece::side::white)
+					{
+						Piece*& Rook = m_board[ROWS_COLS - 1][BLACK_END], *& moveTo = m_board[RookNewX][BLACK_END];
+						moveTo = Rook;
+						Rook = nullptr;
+						moveTo->setCoords(pos(RookNewX, BLACK_END));
+					}
+					else
+					{
+						Piece*& Rook = m_board[ROWS_COLS - 1][WHITE_END], *& moveTo = m_board[RookNewX][WHITE_END];
+						moveTo = Rook;
+						Rook = nullptr;
+						moveTo->setCoords(pos(RookNewX, WHITE_END));
+					}
+				}
+				default:
+					break;
+				}
+			}
+
+			
+		}
 		// pawn reached the end, promote it
-		if (toPiece != nullptr && toPiece->getName() == 'P' && (to.yPos == WHITE_END || to.yPos == BLACK_END))
+		else if (toPiece->getName() == 'P' && (to.yPos == WHITE_END || to.yPos == BLACK_END))
 		{
 			char promoted;
 			do

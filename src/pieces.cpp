@@ -109,8 +109,6 @@ void Piece::moved()
 	return;
 }
 
-// TO DO: implement piece specific canMove functions
-
 // Pawn functions
 char Pawn::getName() const
 {
@@ -196,11 +194,39 @@ char King::getName() const
 
 bool King::canMoveTo(pos to)
 {
+	// reset at the beginning of each king move
+	m_IsCastling = false;
 	pos curPos{ getCoords() };
 	unsigned char moveDiff{ (unsigned char) (abs(curPos.xPos - to.xPos) + abs(curPos.yPos - to.yPos)) };
+	bool castlingLeft = getSide() == side::black && to == pos(6, WHITE_END) || getSide() == side::white && to == pos(2, BLACK_END);
+	bool castlingRight = getSide() == side::black && to == pos(2, WHITE_END) || getSide() == side::white && to == pos(6, BLACK_END);
+
+	if (castlingLeft && canCastle().m_CanCastleLeft || castlingRight && canCastle().m_CanCastleRight)
+	{
+		m_IsCastling = true;
+		return true;
+	}
 
 	// can move one space in any direction, including diagonals (restricted to 1 in x and y direction)
-	return (moveDiff > 0 && moveDiff < 3);
+	return (moveDiff > 0 && moveDiff < 3 && abs(curPos.xPos - to.xPos) <= 1 && abs(curPos.yPos - to.yPos) <= 1);
+}
+
+bool King::isCastling(bool toggleOff)
+{
+	if (toggleOff)
+		m_IsCastling = false;
+
+	return m_IsCastling;
+}
+
+King::canCastleInfo King::canCastle(bool toggleLeftOff, bool toggleRightOff)
+{
+	if (toggleLeftOff == true)
+		CastleInfo.m_CanCastleLeft = false;
+	if (toggleRightOff == true)
+		CastleInfo.m_CanCastleRight = false;
+
+	return CastleInfo;
 }
 
 // Queen functions

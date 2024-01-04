@@ -11,7 +11,7 @@ class Board
 private:
 	bool m_boardInitialized;
 
-	Piece *m_BlackKing { nullptr }, *m_WhiteKing { nullptr };
+	King *m_BlackKing { nullptr }, *m_WhiteKing { nullptr };
 
 	template <typename pieceType>
 	void m_InitPiece(char x, char y = 0);

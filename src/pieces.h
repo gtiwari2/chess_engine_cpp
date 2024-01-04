@@ -49,13 +49,18 @@ public:
 		black = -1, neither = 0, white = 1
 	};
 
+	enum half : signed char
+	{
+		left = -1, none = 0, right = 1
+	};
+
 	// returns the character that represents the piece
 	virtual char getName() const = 0;
 
 	// returns if the target position would be a valid move for the piece without checking the board or bounds
 	virtual bool canMoveTo(pos to) = 0;
 
-	// used for Pawn only
+	// used for Pawns, Rooks and Kings
 	virtual void moved();
 
 private:
@@ -119,6 +124,7 @@ public:
 class Rook : public Piece
 {
 public:
+	half startingHalf;
 
 	using Piece::Piece;
 
@@ -141,6 +147,22 @@ public:
 class King : public Piece
 {
 public:
+	struct canCastleInfo
+	{
+		// can castle if have not already castled and king and rook have not moved!
+		bool m_CanCastleLeft{ true };
+		bool m_CanCastleRight{ true };
+	};
+
+private:
+	bool m_IsCastling { false };
+
+	canCastleInfo CastleInfo;
+
+public:
+	bool isCastling(bool toggleOff = false);
+
+	canCastleInfo canCastle(bool toggleLeftOff = false, bool toggleRightOff = false);
 
 	using Piece::Piece;
 
